@@ -1,4 +1,5 @@
 import sys
+from src.logger import logging
 
 def error_message_detail(error,error_detail:sys):
         # for first two info I'm not interseted but in last info give me exc_tb 
