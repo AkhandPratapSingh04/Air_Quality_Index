@@ -4,5 +4,6 @@ seaborn
 beautifulsoup4
 lxml
 glob2
+regex
 # python-csv
 # -e .

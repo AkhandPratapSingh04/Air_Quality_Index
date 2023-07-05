@@ -1,3 +1,6 @@
+# NOT fetching all the data , check the code
+# some values are in a class so recover those value is the main task
+
 import requests
 import sys
 import os   
@@ -43,7 +46,6 @@ def meta_data(month,year):
         finalD[a].pop(11)
         finalD[a].pop(10)
         finalD[a].pop(9)
-        finalD[a].pop(0)
 
     return finalD
 
@@ -63,20 +65,25 @@ if __name__=="__main__" :
         with open('data/Html_main_data/real_'+str(year)+".csv",'w') as csvfile:
             wr=csv.writer(csvfile,dialect= 'excel')
             wr.writerow(
-                ['T','TM','Tm','SLP','H','VV','V','VM'])
+                ["Day",'T','TM','Tm','SLP','H','VV','V','VM'])
         for month in range(1,13):
             temp=meta_data(month,year)
             final_data=final_data+temp
         
         with open('data/Html_main_data/real_'+str(year)+".csv",'a') as csvfile:
             wr=csv.writer(csvfile,dialect='excel')
+
+            dict1={ 'ntyc': '.','ntde':0,'ntlm':1,
+            'nttu':2,'ntcd':3,'ntbb':4,'ntzb':5,'nthj':6,
+            'ntfs':7,'ntas':8,'nttn':9,
+                    }
+
             for row in final_data:
-                flag=0
-                for e in row :
-                    if e=='' or e=="-" :
-                        flag=1
-                if flag !=1:
-                    wr.writerow(row)
+            #     for e in row :
+            #         if e==dict1.keys
+            #             flag=1
+            #     if flag !=1:
+                wr.writerow(row)
     data_2014=data_combine(2014,600)
     data_2015=data_combine(2015,600)
     data_2016=data_combine(2016,600)
@@ -93,7 +100,7 @@ if __name__=="__main__" :
     with open('data/Html_main_data/final_combine.csv','w') as csvfile:
         wr=csv.writer(csvfile,dialect='excel')
         wr.writerow(
-            ['T','TM','Tm','SLP','H','VV','V','VM']
+            ["Day",'T','TM','Tm','SLP','H','VV','V','VM']
         )
         wr.writerows(total)
             
