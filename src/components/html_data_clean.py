@@ -1,108 +1,76 @@
-# NOT fetching all the data , check the code
-# some values are in a class so recover those value is the main task
-
+import os
+import time 
 import requests
-import sys
-import os   
-import pandas as pd 
 from bs4 import BeautifulSoup
-import csv
-import glob
+import pandas as pd
+
+class WeatherDataScraper:
+    def __init__(self):
+        self.data_dict = {'ntio': '-', 'ntyc': '.', 'ntde': '0', 'ntlm': '1', 'nttu': '2', 'ntcd': '3',
+                          'ntbb': '4', 'ntzb': '5', 'nthj': '6', 'ntfs': '7', 'ntas': '8', 'nttn': '9'}
+
+    def list1(self, url):
+        response = requests.get(url)
+        html_content = response.text
+        soup = BeautifulSoup(html_content, 'html.parser')
+        table = soup.find('table', class_='medias mensuales numspan')
+        row_dict = dict()
+        for row in table.find_all('tr')[1:]:
+            try:
+                cells = row.find_all('td')
+                row_number = row.find('td').strong.text
+                row_value = []
+                for count, cell in enumerate(cells):
+                    span_count = len(cell.find_all('span'))
+                    if span_count != 0:
+                        span_list = cell.find_all('span')
+                        sp_value = ''
+                        for sp in span_list:
+                            cl = sp.get('class')[0]
+                            val = self.data_dict.get(cl)
+                            sp_value = sp_value + val
+                    else:
+                        sp_value = cell.text
+                    if count != 0:
+                        row_value.append(sp_value)
+                row_dict[row_number] = row_value
+            except Exception as e:
+                pass
+        return row_dict
+
+    def get_weather_data(self):
+        df1 = pd.DataFrame()
+        for year in range(2014, 2023):
+            for month in range(1, 13):
+                if month < 10:
+                    url = 'https://en.tutiempo.net/climate/0{}-{}/ws-421820.html'.format(month, year)
+                else:
+                    url = 'https://en.tutiempo.net/climate/{}-{}/ws-421820.html'.format(month, year)
+
+                a = self.list1(url)
+                df = pd.DataFrame(a).transpose()
+                df["Month"] = month
+                df["Year"] = year
+                df1 = pd.concat([df1, df])
+
+        column_dict = {0: 'T', 1: 'TM', 2: 'Tm', 3: 'SLP', 4: 'H', 5: 'PP', 6: 'VV', 7: 'V', 8: 'VM', 9: 'VG',
+                       10: 'RA', 11: 'SN', 12: 'TS', 13: 'FG'}
+        df1.rename(columns=column_dict, inplace=True)
+        return df1
+
+    def save_to_csv(self, folder_path, file_name):
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        file_path = os.path.join(folder_path, file_name)
+        df = self.get_weather_data()
+        df.to_csv(file_path, index=False)
 
 
-def meta_data(month,year):
-    file_html=open('data/html_data/{}/{}.html'.format(year,month),'rb')
-    plain_text=file_html.read()
-
-    tempD=[]
-    finalD=[]
-
-    soup=BeautifulSoup(plain_text,"lxml")
-    for table in soup.findAll('table', {'class':'medias mensuales numspan'}):
-        #appending all text from tbody
-        for tbody in table :
-            for tr in tbody:
-                a=tr.get_text()
-                #appending all values , each and every row
-                tempD.append(a)
-
-    rows=len(tempD)/15
-
-    for times in range(round(rows)):
-        newtempD=[]
-        for i in range(15):
-            newtempD.append(tempD[0])
-            tempD.pop(0)
-        finalD.append(newtempD)
-
-    length=len(finalD)
-    finalD.pop(length-1)
-    finalD.pop(0)
-
-    for a in range(len(finalD)):
-        finalD[a].pop(6)
-        finalD[a].pop(13)
-        finalD[a].pop(12)
-        finalD[a].pop(11)
-        finalD[a].pop(10)
-        finalD[a].pop(9)
-
-    return finalD
-
-def data_combine(year,cs):
-    for a in pd.read_csv('data/Html_main_data/real_'+str(year)+".csv",chunksize=cs):
-        df=pd.DataFrame(data=a)
-        mylist=df.values.tolist()
-    return mylist
-
-
-
-if __name__=="__main__" :
-    if not os.path.exists("data/Html_main_data"):
-        os.makedirs("data/Html_main_data")
-    for year in range(2014,2023):
-        final_data=[]
-        with open('data/Html_main_data/real_'+str(year)+".csv",'w') as csvfile:
-            wr=csv.writer(csvfile,dialect= 'excel')
-            wr.writerow(
-                ["Day",'T','TM','Tm','SLP','H','VV','V','VM'])
-        for month in range(1,13):
-            temp=meta_data(month,year)
-            final_data=final_data+temp
-        
-        with open('data/Html_main_data/real_'+str(year)+".csv",'a') as csvfile:
-            wr=csv.writer(csvfile,dialect='excel')
-
-            dict1={ 'ntyc': '.','ntde':0,'ntlm':1,
-            'nttu':2,'ntcd':3,'ntbb':4,'ntzb':5,'nthj':6,
-            'ntfs':7,'ntas':8,'nttn':9,
-                    }
-
-            for row in final_data:
-            #     for e in row :
-            #         if e==dict1.keys
-            #             flag=1
-            #     if flag !=1:
-                wr.writerow(row)
-    data_2014=data_combine(2014,600)
-    data_2015=data_combine(2015,600)
-    data_2016=data_combine(2016,600)
-    data_2017=data_combine(2017,600)
-    data_2018=data_combine(2018,600)
-    data_2019=data_combine(2015,600)
-    data_2020=data_combine(2020,600)
-    data_2021=data_combine(2021,600)
-    data_2022=data_combine(2022,600)
-
-    total=data_2014+data_2015+data_2016+data_2017+data_2018+data_2019+data_2020+data_2021+data_2022
-
-
-    with open('data/Html_main_data/final_combine.csv','w') as csvfile:
-        wr=csv.writer(csvfile,dialect='excel')
-        wr.writerow(
-            ["Day",'T','TM','Tm','SLP','H','VV','V','VM']
-        )
-        wr.writerows(total)
+if __name__ == "__main__":
+    weather_scraper = WeatherDataScraper()
+    folder_path = 'data/Html_main_data'
+    file_name = 'Final_Data.csv'
+    weather_scraper.save_to_csv(folder_path, file_name)
             
 
 
