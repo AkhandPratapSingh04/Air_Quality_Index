@@ -1,9 +1,11 @@
-from bs4 import BeautifulSoup
+import os
+import time
 import requests
 import pandas as pd
-import os
-from src import span_data as sd
-import time
+from src import span as sd
+from bs4 import BeautifulSoup
+from src.logger import logging as lg
+from src.exception import CustomException as ce
 
 
 class HTMLScraper:
@@ -12,8 +14,8 @@ class HTMLScraper:
 
     def load_span_data(self):
         # Load span data from src/span_data module
-        from src import span_data as sd
-        return sd.s_d()
+        from src import span as sd
+        return sd.spandata()
 
     def scrape_data(self, url):
         response = requests.get(url)
@@ -32,6 +34,7 @@ class HTMLScraper:
                 cells = row.find_all('td')
                 row_number = row.find('td').strong.text
                 row_value = []
+                
 
                 for count, cell in enumerate(cells):
                     span_count = len(cell.find_all('span'))
@@ -56,9 +59,12 @@ class HTMLScraper:
                     if count != 0:
                         row_value.append(sp_value)
                 row_dict[row_number] = row_value
+            
             except Exception as e:
                 pass
+        
         return row_dict
+    lg.info("Find all Class from span and maping data")
 
     def create_dataframe(self):
         df1 = pd.DataFrame()
@@ -74,25 +80,26 @@ class HTMLScraper:
                 df["Year"] = year
                 df1 = pd.concat([df1, df])
         return df1
+    
+    lg.info("Creating Main DataFrame")
 
     def save_dataframe(self, dataframe, folder_path):
         os.makedirs(folder_path, exist_ok=True)
         file_path = os.path.join(folder_path, 'main_data.csv')
         dataframe.to_csv(file_path)
-        print(f"Data saved successfully at {file_path}")
+        lg.info("Saved main DataFrame")
+        # print(f"Data saved successfully at {file_path}")
 
 
 if __name__ == "__main__":
     folder_path = 'data/Html_data'
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
+        lg.info("folder an Created")
     scraper = HTMLScraper()
     dataframe = scraper.create_dataframe()
     scraper.save_dataframe(dataframe, folder_path)
+    lg.info("Data Saved")
     start_time = time.time()
     stop_time = time.time()
     print("Time taken: {}".format(stop_time - start_time))
-
-
-
-

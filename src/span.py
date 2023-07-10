@@ -1,4 +1,6 @@
 import pandas as pd
+from src.logger import logging
+from src.exception import CustomException
 main_list=[['ntlm',
   'nttu',
   'ntyc',
@@ -6131,13 +6133,14 @@ main_list=[['ntlm',
   'ntux',
   'ntaz',
   'ntkf']]
-
 dict1 = {'ntio':'-','ntyc': '.','ntde':'0','ntlm': '1','nttu': '2',
                       'ntcd': '3','ntbb':'4','ntzb': '5','nthj': '6','ntfs': '7','ntas': '8','nttn': '9',
                 
     }
-def s_d():
-  class_df = pd.DataFrame(main_list).drop_duplicates().T
-  class_df.columns = ['col1','col2','col3','col4']
-  class_df['col5'] = class_df['col1'].map(dict1)
-  return class_df
+
+def spandata():  
+    class_df = pd.DataFrame(main_list).drop_duplicates().T
+    class_df.columns = ['col1','col2','col3','col4']
+    class_df['col5'] = class_df['col1'].map(dict1)
+    logging.info("Created calss dataframe")
+    return class_df
