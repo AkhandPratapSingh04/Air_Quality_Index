@@ -6137,7 +6137,7 @@ dict1 = {'ntio':'-','ntyc': '.','ntde':'0','ntlm': '1','nttu': '2',
                 
     }
 def s_d():
-  class_df = pd.DataFrame('list.txt').drop_duplicates().T
+  class_df = pd.DataFrame(main_list).drop_duplicates().T
   class_df.columns = ['col1','col2','col3','col4']
   class_df['col5'] = class_df['col1'].map(dict1)
   return class_df
