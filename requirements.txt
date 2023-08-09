@@ -7,5 +7,6 @@ glob2
 regex
 ipykernel
 scikit-learn
+dill
 # python-csv
 # -e .
